@@ -78,11 +78,14 @@ var SortableItems = Ember.Component.extend({
   _onStart: function(evt) {
 
     Ember.run(this, function() {
+      var itemCollection = this.get('itemCollection'),
+          item = itemCollection.objectAt(evt.oldIndex);
+
       var freezeSelector = this.get('freeze');
 
       if (freezeSelector) {
         var _sortableInstance = this.get('_sortableInstance');
-        var itemCollection = this.get('itemCollection');
+
         frozenObjects = [];
 
         frozen = [].slice.call(_sortableInstance.el.querySelectorAll(freezeSelector));
@@ -94,9 +97,11 @@ var SortableItems = Ember.Component.extend({
           frozenObjects.pushObject(itemCollection.objectAt(position));
         });
       }
+
+      this.sendAction('onStartAction', itemCollection, item, evt.oldIndex, evt);
+
     });
 
-    this._sendOutAction('onStartAction', evt);
   },
 
   /**
@@ -105,7 +110,8 @@ var SortableItems = Ember.Component.extend({
     The user has stopped draggging an item
   */
   _onEnd: function(evt) {
-    this._sendOutAction('onEndAction', evt);
+
+    this.sendAction('onEndAction', evt.newIndex, evt);
   },
 
   /**
@@ -114,7 +120,13 @@ var SortableItems = Ember.Component.extend({
     An item is dropped into the list from another list
   */
   _onAdd: function(evt) {
-    this._sendOutAction('onAddAction', evt);
+
+    Ember.run(this, function() {
+      var itemCollection = this.get('itemCollection');
+
+      this.sendAction('onAddAction', itemCollection, evt);
+    });
+
   },
 
   /**
@@ -128,7 +140,6 @@ var SortableItems = Ember.Component.extend({
     Ember.run(this, function() {
       var collection = this.get('itemCollection');
       var item = collection.objectAt(evt.oldIndex);
-      var list = evt.to;
       var freezeSelector = this.get('freeze');
       collection.removeAt(evt.oldIndex);
       collection.insertAt(evt.newIndex, item);
@@ -166,6 +177,7 @@ var SortableItems = Ember.Component.extend({
     An item is removed from the list and added into another
   */
   _onRemove: function(evt) {
+
     this._sendOutAction('onRemoveAction', evt);
   },
 
