@@ -12,7 +12,7 @@ var SortableItems = Ember.Component.extend({
   layout: layout,
   tagName: "ul",
   classNames: ['sortable-items'],
-  classNameBindings: ['class'],
+  classNameBindings: ['classExtra'],
 
   /**
     Sortable properties with reasonable defaults
