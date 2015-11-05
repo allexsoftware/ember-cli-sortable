@@ -2,11 +2,6 @@ import Ember from 'ember';
 import layout from '../templates/components/sortable-items';
 /* global Sortable */
 
-var pid,
-    frozen,
-    frozenObjects,
-    positions;
-
 var SortableItems = Ember.Component.extend({
   target: Ember.computed.alias('targetObject'), // Bubble up all actions
   layout: layout,
@@ -81,22 +76,7 @@ var SortableItems = Ember.Component.extend({
       var itemCollection = this.get('itemCollection'),
           item = itemCollection.objectAt(evt.oldIndex);
 
-      var freezeSelector = this.get('freeze');
-
-      if (freezeSelector) {
-        var _sortableInstance = this.get('_sortableInstance');
-
-        frozenObjects = [];
-
-        frozen = [].slice.call(_sortableInstance.el.querySelectorAll(freezeSelector));
-        positions = frozen.map(function (el) {
-          return Sortable.utils.index(el);
-        });
-
-        positions.forEach(function(position) {
-          frozenObjects.pushObject(itemCollection.objectAt(position));
-        });
-      }
+      window.dndInTransitItem = item;
 
       this.sendAction('onStartAction', itemCollection, item, evt.oldIndex, evt);
 
@@ -111,6 +91,8 @@ var SortableItems = Ember.Component.extend({
   */
   _onEnd: function(evt) {
 
+    window.dndInTransitItem = null;
+
     this.sendAction('onEndAction', evt.newIndex, evt);
   },
 
@@ -122,11 +104,9 @@ var SortableItems = Ember.Component.extend({
   _onAdd: function(evt) {
 
     Ember.run(this, function() {
-      var itemCollection = this.get('itemCollection');
 
-      this.sendAction('onAddAction', itemCollection, evt);
+      this.sendAction('onAddAction', window.dndInTransitItem, evt);
     });
-
   },
 
   /**
@@ -140,23 +120,11 @@ var SortableItems = Ember.Component.extend({
     Ember.run(this, function() {
       var collection = this.get('itemCollection');
       var item = collection.objectAt(evt.oldIndex);
-      var freezeSelector = this.get('freeze');
-      collection.removeAt(evt.oldIndex);
-      collection.insertAt(evt.newIndex, item);
 
-      if (freezeSelector) {
-        frozenObjects.forEach(function(obj, i) {
-          var pos = positions[i];
-          if (collection.objectAt(pos) !== obj) {
-            var realPos = collection.indexOf(obj);
-            collection.removeAt(realPos);
-            collection.insertAt(pos, obj);
-          }
-        });
-      }
+        collection.removeObject(item);
+        collection.insertAt(evt.newIndex, item);
 
-
-      this.sendAction('onItemMoveAction', item, evt, evt.oldIndex, evt.newIndex);
+      this.sendAction('onItemMoveAction', item, collection.toArray(), evt);
 
     });
   },
@@ -178,7 +146,10 @@ var SortableItems = Ember.Component.extend({
   */
   _onRemove: function(evt) {
 
-    this._sendOutAction('onRemoveAction', evt);
+    Ember.run(this, function() {
+
+      this.sendAction('onRemoveAction', window.dndInTransitItem, evt);
+    });
   },
 
   /**
@@ -197,38 +168,6 @@ var SortableItems = Ember.Component.extend({
   */
   _onMove: function(evt) {
     this._sendOutAction('onMoveAction', evt);
-
-    var vector;
-    var freeze = false;
-    var freezeSelector = this.get('freeze');
-
-    if (freezeSelector) {
-      clearTimeout(pid);
-
-      pid = setTimeout(function () {
-        var list = evt.to;
-        frozen.forEach(function (el, i) {
-          var idx = positions[i];
-
-          if (list.children[idx] !== el) {
-            var realIdx = Sortable.utils.index(el);
-            list.insertBefore(el, list.children[idx + (realIdx < idx)]);
-          }
-        });
-      }, 0);
-
-      frozen.forEach(function (el) {
-        if (el === evt.related) {
-          freeze = true;
-        }
-
-        if (evt.related.nextElementSibling === el &&
-            evt.relatedRect.top < evt.draggedRect.top) {
-          vector = -1;
-        }
-      });
-      return freeze ? false : vector;
-    }
   },
 
   /**
