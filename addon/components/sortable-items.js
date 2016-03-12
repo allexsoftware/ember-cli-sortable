@@ -122,7 +122,6 @@ var SortableItems = Ember.Component.extend({
       var item = collection[evt.oldIndex];
       collection[evt.oldIndex] = collection[evt.newIndex];
       collection[evt.newIndex] = item;
-      this.set('itemCollection', collection);
       this.sendAction('onItemMoveAction', item, collection.toArray(), evt);
 
     });
