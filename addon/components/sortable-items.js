@@ -91,9 +91,10 @@ var SortableItems = Ember.Component.extend({
   */
   _onEnd: function(evt) {
 
-    window.dndInTransitItem = null;
+      var item = window.dndInTransitItem;
+      window.dndInTransitItem = null;
 
-    this.sendAction('onEndAction', evt.newIndex, evt);
+      this.sendAction('onEndAction', evt.newIndex, evt, item);
   },
 
   /**
