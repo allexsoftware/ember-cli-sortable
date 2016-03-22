@@ -119,12 +119,16 @@ var SortableItems = Ember.Component.extend({
     this._sendOutAction('onUpdateAction', evt);
 
     Ember.run(this, function() {
-      var collection = this.get('itemCollection').toArray();
-      var item = collection[evt.oldIndex];
-      collection[evt.oldIndex] = collection[evt.newIndex];
-      collection[evt.newIndex] = item;
-      this.sendAction('onItemMoveAction', item, collection.toArray(), evt);
-
+     var collection = this.get('itemCollection').toArray();
+     var item = collection[evt.oldIndex];
+     collection.splice(evt.newIndex, 0, item);
+     if(evt.newIndex > evt.oldIndex) {
+       collection.splice(evt.oldIndex, 1);
+     } else {
+       collection.splice(evt.oldIndex+1, 1);
+     }
+     this.sendAction('onItemMoveAction', item, collection, evt);
+ 
     });
   },
 
