@@ -118,12 +118,15 @@ var SortableItems = Ember.Component.extend({
   _onUpdate: function(evt) {
     this._sendOutAction('onUpdateAction', evt);
 
-    var collection = this.get('itemCollection').toArray();
-    var item = collection[evt.oldIndex];
-    collection[evt.oldIndex] = collection[evt.newIndex];
-    collection[evt.newIndex] = item;
-    // this.set('itemCollection', collection);
-    this.sendAction('onItemMoveAction', item, collection, evt);
+    var collection = this.get('itemCollection');
+    var item = collection.objectAt(evt.oldIndex);
+    collection.replace(evt.oldIndex, collection.objectAt(evt.newIndex));
+      // if oldIndex is smaller than the newIndex, insert old element at newIndex-1:
+      // (0->4) mit [a, b, c, d] -> [d, b, c] -> [d, b, c, a]
+      // sonst:
+      // (4->0) mit [a, b, c, d] -> [b, c, a] -> [d, b, c, a]
+    collection.insertAt(evt.oldIndex < evt.newIndex ? evt.newIndex - 1 : evt.newIndex, item);
+    this.sendAction('onItemMoveAction', item, collection.toArray(), evt);
   },
 
   /**
