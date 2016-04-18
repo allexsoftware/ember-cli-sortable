@@ -120,13 +120,8 @@ var SortableItems = Ember.Component.extend({
 
     var collection = this.get('itemCollection').toArray();
     var item = collection[evt.oldIndex];
-    if(evt.newIndex > evt.oldIndex) {
-      collection.splice(evt.newIndex+1, 0, item);
-      collection.splice(evt.oldIndex, 1);
-    } else {
-      collection.splice(evt.newIndex, 0, item);
-      collection.splice(evt.oldIndex+1, 1);
-    }
+    collection[evt.oldIndex] = collection[evt.newIndex];
+    collection[evt.oldIndex] = item;
     // this.set('itemCollection', collection);
     this.sendAction('onItemMoveAction', item, collection, evt);
   },
