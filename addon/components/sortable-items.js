@@ -120,7 +120,7 @@ var SortableItems = Ember.Component.extend({
 
     var collection = this.get('itemCollection');
     var item = collection.objectAt(evt.oldIndex);
-    collection.replace(evt.oldIndex, collection.objectAt(evt.newIndex));
+    collection.removeAt(evt.oldIndex, 1);
       // if oldIndex is smaller than the newIndex, insert old element at newIndex-1:
       // (0->4) mit [a, b, c, d] -> [d, b, c] -> [d, b, c, a]
       // sonst:
